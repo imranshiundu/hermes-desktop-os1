@@ -18,7 +18,9 @@ OS1 is currently a **macOS desktop app**. It can connect to and manage Linux clo
 | Linux desktop | Not yet | N/A | Roadmap |
 | Windows desktop | Not yet | N/A | Not planned yet |
 
-Linux support today means OS1 can provision, install into, and control Linux cloud computers through Orgo, or connect to Linux hosts over SSH. Linux desktop support would require a separate packaging/UI path because this codebase currently uses macOS-native Swift packaging, signing, app bundle, Keychain, and Apple terminal/UI assumptions.
+Linux support today means OS1 can provision, install into, and control Linux cloud computers through Orgo, or connect to Linux hosts over SSH. Linux desktop support will be Electron-first because this codebase currently uses macOS-native Swift packaging, signing, app bundle, Keychain, and Apple terminal/UI assumptions.
+
+See [`docs/linux-support.md`](docs/linux-support.md) for the full Linux support plan.
 
 ## What you get
 
@@ -95,6 +97,12 @@ Or use the repository test wrapper:
 ./scripts/run-tests.sh
 ```
 
+Run preflight checks with:
+
+```sh
+./scripts/doctor.sh
+```
+
 ## Linux desktop roadmap
 
 The current app is not ready to build as a Linux desktop binary. A serious Linux contribution should not pretend otherwise. The practical roadmap is:
@@ -120,23 +128,23 @@ The current app is not ready to build as a Linux desktop binary. A serious Linux
    - Hermes agent installed
    - terminal websocket reachable
 
-4. **Choose a Linux shell**
-   - Tauri or Electron for the Linux desktop UI
+4. **Build an Electron Linux shell**
+   - Electron for the Linux desktop UI
    - AppImage first for broad Linux distribution
    - `.deb` after AppImage works
-   - Flatpak later if sandboxing becomes useful
+   - Flatpak later only if sandboxing becomes useful
 
 5. **Keep platform-specific code explicit**
    - macOS Keychain should stay behind a credential-store abstraction
    - macOS app bundle/signing should stay in macOS packaging scripts
-   - Linux packaging should live in separate scripts and CI jobs
+   - Linux packaging should live in separate Electron scripts and CI jobs
 
 ## Contribution ideas
 
 Good first contributions:
 
-- Add a `docs/linux-support.md` page.
-- Add a `scripts/doctor.sh` preflight checker.
+- Add or improve the `docs/linux-support.md` page.
+- Improve the `scripts/doctor.sh` preflight checker.
 - Add a diagnostics screen inside the app.
 - Improve README platform clarity.
 - Add GitHub Actions for tests.
@@ -147,8 +155,10 @@ Larger contributions:
 
 - Extract Orgo and SSH logic into a reusable core module.
 - Add an interface around credential storage so macOS Keychain is not hardcoded everywhere.
-- Start a separate Linux desktop shell after the core module is clean.
-- Add AppImage packaging once there is a Linux desktop shell.
+- Start a separate Electron Linux desktop shell after the core module is clean.
+- Add AppImage packaging once the Electron shell exists.
+
+See [`docs/contributing.md`](docs/contributing.md) before opening a large platform PR.
 
 ## Realtime voice mode
 
@@ -222,4 +232,4 @@ License: [MIT](LICENSE). All upstream copyrights are preserved.
 
 ## Status
 
-This is an early build. Translation polish, GitHub Pages site, signing/notarization, diagnostics, and Linux desktop planning are still in progress. Open issues in this repo for bugs and feature requests.
+This is an early build. Translation polish, GitHub Pages site, signing/notarization, diagnostics, and Electron-based Linux desktop planning are still in progress. Open issues in this repo for bugs and feature requests.
