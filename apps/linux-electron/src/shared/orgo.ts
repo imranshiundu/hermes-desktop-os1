@@ -14,6 +14,15 @@ export interface OrgoWorkspace {
   name: string;
 }
 
+export interface OrgoWorkspaceListResult {
+  provider: 'orgo';
+  status: ProviderStatus;
+  checkedAt: string;
+  message: string;
+  endpointTried?: string;
+  workspaces: OrgoWorkspace[];
+}
+
 export interface OrgoComputer {
   id: string;
   name: string;
