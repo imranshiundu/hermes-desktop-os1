@@ -4,13 +4,13 @@
     "lib": ["DOM", "ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist/preload",
-    "rootDir": "src/preload",
+    "outDir": "dist",
+    "rootDir": "src",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src/preload"]
+  "include": ["src/preload", "src/shared"]
 }
