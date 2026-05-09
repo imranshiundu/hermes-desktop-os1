@@ -329,3 +329,31 @@ h1 {
   grid-template-columns: minmax(180px, 1fr) auto auto;
   gap: 10px;
 }
+
+.terminalPanel {
+  background: rgba(27, 23, 21, 0.92);
+  color: #fff8ef;
+}
+
+.terminalPanel .eyebrow {
+  color: #ff9c82;
+}
+
+.terminalPanel h2 {
+  color: #fff8ef;
+}
+
+.terminalSurface {
+  min-height: 220px;
+  border: 1px solid rgba(255, 248, 239, 0.12);
+  border-radius: 24px;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.22);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+}
+
+.terminalLine {
+  color: rgba(255, 248, 239, 0.78);
+  line-height: 1.7;
+}
