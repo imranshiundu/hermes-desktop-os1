@@ -103,6 +103,8 @@ Run preflight checks with:
 ./scripts/doctor.sh
 ```
 
+Diagnostics behavior is defined in [`docs/diagnostics.md`](docs/diagnostics.md).
+
 ## Linux desktop roadmap
 
 The current app is not ready to build as a Linux desktop binary. A serious Linux contribution should not pretend otherwise. The practical roadmap is:
