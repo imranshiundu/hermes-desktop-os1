@@ -4,13 +4,44 @@ This directory is reserved for the planned OS1 Linux desktop shell.
 
 The Linux shell will be Electron-first. It is not implemented yet.
 
+## Chosen stack
+
+```txt
+Electron
+TypeScript
+React
+Vite
+xterm.js
+```
+
+No Tauri.
+
+No Next.js inside the desktop shell. Next.js can be used later for websites, docs, marketing, or hosted dashboards, but the Linux desktop app should stay Vite + React inside Electron.
+
 ## Current status
 
 ```txt
 status: planned
 runtime: Electron
+language: TypeScript
+renderer: React + Vite
+terminal: xterm.js
 packaging target: AppImage first, .deb later
 ```
+
+## Product target
+
+The Linux shell should preserve the OS1 experience, not become a different product.
+
+Target:
+
+- same OS1 identity
+- same visual direction
+- same UX discipline
+- same Orgo VM flow
+- same SSH flow
+- same terminal discipline
+- same diagnostics and safety model
 
 ## Scope for first implementation
 
@@ -36,6 +67,7 @@ Do not add these in the first pass:
 - Windows packaging
 - plugin system
 - full macOS feature parity
+- Next.js runtime/server model
 
 ## Security boundaries
 
