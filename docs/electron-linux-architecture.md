@@ -2,7 +2,39 @@
 
 This document defines the planned Linux desktop path for OS1.
 
-The current OS1 app is a native macOS Swift application. Linux desktop support should be built as an Electron shell, not as a direct port of the macOS bundle.
+The current OS1 app is a native macOS Swift application. Linux desktop support should be built as an Electron shell that preserves the same OS1 product behavior, engineering discipline, visual language, and UX. It is not a direct port of the macOS app bundle.
+
+## Chosen stack
+
+The Linux shell stack is:
+
+```txt
+Electron
+TypeScript
+React
+Vite
+xterm.js for terminal rendering
+```
+
+This is the preferred stack because it is lighter and more direct for desktop work than a Next.js-based app shell. Next.js may still be useful for websites, docs, marketing pages, or a hosted web dashboard, but the Linux desktop app should use Vite + React inside Electron.
+
+Do not use Tauri for this project.
+
+## Product parity goal
+
+The Linux shell should not become a separate weak product. It should match OS1 as closely as possible:
+
+- same OS1 identity
+- same calm desktop experience
+- same connection flow
+- same Orgo VM flow
+- same SSH flow
+- same terminal behavior
+- same diagnostics discipline
+- same security boundaries
+- same safety posture for voice and MCP tools
+
+The first implementation may be smaller, but the target is parity.
 
 ## Goals
 
@@ -24,7 +56,7 @@ The Electron Linux shell should make OS1 usable on Linux desktops while preservi
 
 ## Non-goals for the first Linux release
 
-The first Linux shell should not try to match every macOS feature.
+The first Linux shell should not try to match every macOS feature immediately.
 
 Do not include in the first release:
 
@@ -36,6 +68,7 @@ Do not include in the first release:
 - Flatpak packaging
 - Windows packaging
 - background daemon model
+- Next.js server/runtime assumptions inside the desktop shell
 
 ## Proposed repository layout
 
@@ -44,6 +77,7 @@ apps/
   linux-electron/
     package.json
     electron.vite.config.ts
+    tsconfig.json
     src/
       main/
         index.ts
@@ -71,13 +105,12 @@ apps/
       deb/
 packages/
   schemas/
-    orgo.ts
-    connection.ts
-    diagnostics.ts
+    connection.schema.json
+    diagnostics.schema.json
+    provider.schema.json
+    terminal.schema.json
   core-contracts/
-    transport.ts
-    credentials.ts
-    terminal.ts
+    README.md
 ```
 
 This layout is a proposal, not a requirement for the current macOS app.
@@ -183,7 +216,7 @@ Minimum SSH flow:
 
 ## Terminal model
 
-The terminal renderer should use a proven terminal component such as xterm.js.
+The terminal renderer should use xterm.js.
 
 Terminal requirements:
 
@@ -236,7 +269,9 @@ That is enough to prove the Linux direction without building a fake full product
 
 ## Review checklist for Linux PRs
 
-- [ ] Electron is used for Linux desktop work.
+- [ ] Electron + TypeScript + React + Vite is used for Linux desktop work.
+- [ ] Next.js is not introduced into the desktop shell.
+- [ ] Tauri is not introduced.
 - [ ] Renderer has no raw Node integration.
 - [ ] Secrets remain in the main process or credential backend.
 - [ ] No fake Linux install claims are added.
