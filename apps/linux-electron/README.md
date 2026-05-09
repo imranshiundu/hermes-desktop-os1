@@ -36,15 +36,25 @@ Implemented now:
 - React renderer shell
 - diagnostics page
 - local command and credential-presence checks
+- credential status bridge
+- write-only credential form
+- local `0600` credential fallback in Electron `userData`
 
 Not implemented yet:
 
-- credential storage
+- Linux Secret Service / libsecret storage
+- Orgo key verification
 - Orgo login
 - workspace/computer listing
 - terminal websocket
 - SSH target flow
 - packaging
+
+## Credential warning
+
+The current credential implementation is a first boundary, not the final Linux security backend.
+
+It keeps raw keys out of the renderer and stores local fallback credentials with restricted file permissions. The final Linux path should use Secret Service / libsecret where available, then keep the local encrypted fallback only for systems without a usable secure store.
 
 ## Run locally
 
