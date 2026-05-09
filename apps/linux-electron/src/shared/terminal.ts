@@ -16,3 +16,16 @@ export interface TerminalSessionState {
   message: string;
   updatedAt: string;
 }
+
+export interface PrepareTerminalSessionInput {
+  target: TerminalTarget;
+}
+
+export interface TerminalWriteInput {
+  data: string;
+}
+
+export interface TerminalResizeInput {
+  cols: number;
+  rows: number;
+}
