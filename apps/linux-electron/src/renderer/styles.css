@@ -236,6 +236,17 @@ h1 {
   background: rgba(247, 241, 232, 0.72);
 }
 
+.selectableItem {
+  width: 100%;
+  border-radius: 22px;
+  text-align: left;
+}
+
+.selectedItem {
+  border-color: rgba(255, 106, 74, 0.82);
+  background: rgba(255, 106, 74, 0.1);
+}
+
 .check {
   display: flex;
   justify-content: space-between;
