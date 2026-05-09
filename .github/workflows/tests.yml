@@ -64,6 +64,29 @@ jobs:
           grep -qi "No Tauri" apps/linux-electron/README.md
           grep -qi "No Next.js inside the desktop shell" apps/linux-electron/README.md
 
+  linux-electron:
+    name: Linux Electron shell
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/linux-electron
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Linux Electron shell
+        run: npm run build
+
   swift-tests:
     name: Swift tests
     runs-on: macos-15
