@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { DiagnosticCheck, DiagnosticReport } from '../shared/diagnostics';
 import type { CredentialName, CredentialStatus } from '../shared/credentials';
-import type { OrgoComputerListResult, OrgoVerificationResult, OrgoWorkspaceListResult } from '../shared/orgo';
+import type { OrgoComputer, OrgoComputerListResult, OrgoVerificationResult, OrgoWorkspaceListResult } from '../shared/orgo';
+import type { TerminalSessionState } from '../shared/terminal';
 import './styles.css';
 
 function statusLabel(status: DiagnosticCheck['status']): string {
@@ -215,8 +216,9 @@ function WorkspacePanel({ onSelectWorkspace }: { onSelectWorkspace: (workspaceId
   );
 }
 
-function ComputersPanel({ workspaceId }: { workspaceId: string }): JSX.Element {
+function ComputersPanel({ workspaceId, onSelectComputer }: { workspaceId: string; onSelectComputer: (computer: OrgoComputer) => void }): JSX.Element {
   const [result, setResult] = useState<OrgoComputerListResult | null>(null);
+  const [selectedComputerId, setSelectedComputerId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -225,11 +227,17 @@ function ComputersPanel({ workspaceId }: { workspaceId: string }): JSX.Element {
     setError(null);
     try {
       setResult(await window.os1.orgo.listComputers({ workspaceId: workspaceId || undefined }));
+      setSelectedComputerId('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load Orgo computers.');
     } finally {
       setLoading(false);
     }
+  }
+
+  function selectComputer(computer: OrgoComputer): void {
+    setSelectedComputerId(computer.id);
+    onSelectComputer(computer);
   }
 
   return (
@@ -262,15 +270,45 @@ function ComputersPanel({ workspaceId }: { workspaceId: string }): JSX.Element {
       {result?.computers.length ? (
         <div className="workspaceList">
           {result.computers.map((computer) => (
-            <article className="workspaceItem" key={computer.id}>
+            <button
+              className={`workspaceItem selectableItem ${selectedComputerId === computer.id ? 'selectedItem' : ''}`}
+              key={computer.id}
+              type="button"
+              onClick={() => selectComputer(computer)}
+            >
               <strong>{computer.name}</strong>
               <small>{computer.id}</small>
               {computer.status ? <small>Status: {computer.status}</small> : null}
               {computer.workspaceId ? <small>Workspace: {computer.workspaceId}</small> : null}
-            </article>
+            </button>
           ))}
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function TerminalPanel({ session }: { session: TerminalSessionState }): JSX.Element {
+  return (
+    <section className="panel compactPanel terminalPanel">
+      <div className="panelHeader">
+        <div>
+          <p className="eyebrow">Terminal</p>
+          <h2>Session scaffold</h2>
+        </div>
+        <button type="button" disabled>
+          Connect later
+        </button>
+      </div>
+
+      <article className="terminalSurface">
+        <div className="terminalLine">OS1 terminal route is not connected yet.</div>
+        <div className="terminalLine">Status: {session.status}</div>
+        <div className="terminalLine">Message: {session.message}</div>
+        {session.target ? <div className="terminalLine">Target: {session.target.displayName}</div> : null}
+        {session.target?.computerId ? <div className="terminalLine">Computer: {session.target.computerId}</div> : null}
+        {session.target?.workspaceId ? <div className="terminalLine">Workspace: {session.target.workspaceId}</div> : null}
+      </article>
     </section>
   );
 }
@@ -365,6 +403,26 @@ function CredentialsPanel(): JSX.Element {
 
 function App(): JSX.Element {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('');
+  const [terminalSession, setTerminalSession] = useState<TerminalSessionState>({
+    status: 'idle',
+    message: 'Select a computer to prepare a terminal session.',
+    updatedAt: new Date().toISOString(),
+  });
+
+  function selectComputer(computer: OrgoComputer): void {
+    setTerminalSession({
+      status: 'selected',
+      target: {
+        provider: 'orgo',
+        computerId: computer.id,
+        workspaceId: computer.workspaceId || selectedWorkspaceId || undefined,
+        displayName: computer.name,
+        transport: 'orgo-websocket',
+      },
+      message: 'Computer selected. Terminal websocket is not wired yet.',
+      updatedAt: new Date().toISOString(),
+    });
+  }
 
   return (
     <main className="appShell">
@@ -382,8 +440,8 @@ function App(): JSX.Element {
           <button className="active">Providers</button>
           <button className="active">Workspaces</button>
           <button className="active">Computers</button>
+          <button className="active">Terminal</button>
           <button disabled>Connections</button>
-          <button disabled>Terminal</button>
           <button disabled>Sessions</button>
           <button disabled>Files</button>
         </nav>
@@ -400,7 +458,8 @@ function App(): JSX.Element {
         <CredentialsPanel />
         <ProviderPanel />
         <WorkspacePanel onSelectWorkspace={setSelectedWorkspaceId} />
-        <ComputersPanel workspaceId={selectedWorkspaceId} />
+        <ComputersPanel workspaceId={selectedWorkspaceId} onSelectComputer={selectComputer} />
+        <TerminalPanel session={terminalSession} />
         <DiagnosticsPanel />
       </section>
     </main>
