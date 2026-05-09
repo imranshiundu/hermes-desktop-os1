@@ -29,3 +29,17 @@ export interface OrgoComputer {
   status?: string;
   workspaceId?: string;
 }
+
+export interface OrgoComputerListInput {
+  workspaceId?: string;
+}
+
+export interface OrgoComputerListResult {
+  provider: 'orgo';
+  status: ProviderStatus;
+  checkedAt: string;
+  message: string;
+  endpointTried?: string;
+  workspaceId?: string;
+  computers: OrgoComputer[];
+}
