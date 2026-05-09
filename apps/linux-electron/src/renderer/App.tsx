@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { DiagnosticCheck, DiagnosticReport } from '../shared/diagnostics';
 import type { CredentialName, CredentialStatus } from '../shared/credentials';
-import type { OrgoVerificationResult } from '../shared/orgo';
+import type { OrgoVerificationResult, OrgoWorkspaceListResult } from '../shared/orgo';
 import './styles.css';
 
 function statusLabel(status: DiagnosticCheck['status']): string {
@@ -146,6 +146,60 @@ function ProviderPanel(): JSX.Element {
   );
 }
 
+function WorkspacePanel(): JSX.Element {
+  const [result, setResult] = useState<OrgoWorkspaceListResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadWorkspaces(): Promise<void> {
+    setLoading(true);
+    setError(null);
+    try {
+      setResult(await window.os1.orgo.listWorkspaces());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load Orgo workspaces.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="panel compactPanel">
+      <div className="panelHeader">
+        <div>
+          <p className="eyebrow">Workspaces</p>
+          <h2>Orgo workspaces</h2>
+        </div>
+        <button type="button" onClick={() => void loadWorkspaces()} disabled={loading}>
+          {loading ? 'Loading…' : 'Load workspaces'}
+        </button>
+      </div>
+
+      {error ? <p className="error">{error}</p> : null}
+
+      <article className={`check check-${result?.status === 'ok' ? 'ok' : result?.status === 'fail' ? 'fail' : 'warn'}`}>
+        <div>
+          <strong>Workspace status</strong>
+          <p>{result?.message ?? 'No workspace request has been made yet.'}</p>
+          {result?.endpointTried ? <small>Endpoint: {result.endpointTried}</small> : null}
+        </div>
+        <span>{providerStatusLabel(result?.status ?? 'untested')}</span>
+      </article>
+
+      {result?.workspaces.length ? (
+        <div className="workspaceList">
+          {result.workspaces.map((workspace) => (
+            <article className="workspaceItem" key={workspace.id}>
+              <strong>{workspace.name}</strong>
+              <small>{workspace.id}</small>
+            </article>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function CredentialsPanel(): JSX.Element {
   const [statuses, setStatuses] = useState<CredentialStatus[]>([]);
   const [values, setValues] = useState<Record<CredentialName, string>>({ orgo: '', openai: '' });
@@ -249,6 +303,7 @@ function App(): JSX.Element {
         <nav>
           <button className="active">Diagnostics</button>
           <button className="active">Providers</button>
+          <button className="active">Workspaces</button>
           <button disabled>Connections</button>
           <button disabled>Terminal</button>
           <button disabled>Sessions</button>
@@ -266,6 +321,7 @@ function App(): JSX.Element {
         </header>
         <CredentialsPanel />
         <ProviderPanel />
+        <WorkspacePanel />
         <DiagnosticsPanel />
       </section>
     </main>
