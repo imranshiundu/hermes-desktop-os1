@@ -7,6 +7,12 @@ import type {
   OrgoVerificationResult,
   OrgoWorkspaceListResult,
 } from '../shared/orgo.js';
+import type {
+  PrepareTerminalSessionInput,
+  TerminalResizeInput,
+  TerminalSessionState,
+  TerminalWriteInput,
+} from '../shared/terminal.js';
 
 export interface OS1Api {
   diagnostics: {
@@ -21,6 +27,14 @@ export interface OS1Api {
     verify: () => Promise<OrgoVerificationResult>;
     listWorkspaces: () => Promise<OrgoWorkspaceListResult>;
     listComputers: (input: OrgoComputerListInput) => Promise<OrgoComputerListResult>;
+  };
+  terminal: {
+    get: () => Promise<TerminalSessionState>;
+    prepare: (input: PrepareTerminalSessionInput) => Promise<TerminalSessionState>;
+    connect: () => Promise<TerminalSessionState>;
+    write: (input: TerminalWriteInput) => Promise<TerminalSessionState>;
+    resize: (input: TerminalResizeInput) => Promise<TerminalSessionState>;
+    disconnect: () => Promise<TerminalSessionState>;
   };
 }
 
@@ -37,6 +51,14 @@ const api: OS1Api = {
     verify: () => ipcRenderer.invoke('orgo:verify') as Promise<OrgoVerificationResult>,
     listWorkspaces: () => ipcRenderer.invoke('orgo:list-workspaces') as Promise<OrgoWorkspaceListResult>,
     listComputers: (input) => ipcRenderer.invoke('orgo:list-computers', input) as Promise<OrgoComputerListResult>,
+  },
+  terminal: {
+    get: () => ipcRenderer.invoke('terminal:get') as Promise<TerminalSessionState>,
+    prepare: (input) => ipcRenderer.invoke('terminal:prepare', input) as Promise<TerminalSessionState>,
+    connect: () => ipcRenderer.invoke('terminal:connect') as Promise<TerminalSessionState>,
+    write: (input) => ipcRenderer.invoke('terminal:write', input) as Promise<TerminalSessionState>,
+    resize: (input) => ipcRenderer.invoke('terminal:resize', input) as Promise<TerminalSessionState>,
+    disconnect: () => ipcRenderer.invoke('terminal:disconnect') as Promise<TerminalSessionState>,
   },
 };
 
