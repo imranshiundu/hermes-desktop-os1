@@ -2,12 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { DiagnosticCheck, DiagnosticReport } from '../shared/diagnostics';
 import type { CredentialName, CredentialStatus } from '../shared/credentials';
+import type { OrgoVerificationResult } from '../shared/orgo';
 import './styles.css';
 
 function statusLabel(status: DiagnosticCheck['status']): string {
   if (status === 'ok') return 'OK';
   if (status === 'warn') return 'WARN';
   return 'FAIL';
+}
+
+function providerStatusLabel(status: OrgoVerificationResult['status']): string {
+  if (status === 'ok') return 'OK';
+  if (status === 'warn') return 'WARN';
+  if (status === 'fail') return 'FAIL';
+  return 'UNTESTED';
 }
 
 function credentialStatusLabel(status: CredentialStatus): string {
@@ -87,6 +95,53 @@ function DiagnosticsPanel(): JSX.Element {
           </div>
         ))}
       </div>
+    </section>
+  );
+}
+
+function ProviderPanel(): JSX.Element {
+  const [result, setResult] = useState<OrgoVerificationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function verify(): Promise<void> {
+    setLoading(true);
+    setError(null);
+    try {
+      setResult(await window.os1.orgo.verify());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to verify Orgo provider.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="panel compactPanel">
+      <div className="panelHeader">
+        <div>
+          <p className="eyebrow">Cloud provider</p>
+          <h2>Orgo verification</h2>
+        </div>
+        <button type="button" onClick={() => void verify()} disabled={loading}>
+          {loading ? 'Verifying…' : 'Verify Orgo'}
+        </button>
+      </div>
+
+      <p className="muted">
+        Orgo is the first cloud-computer provider. The architecture still allows future providers through the same controlled main-process boundary.
+      </p>
+
+      {error ? <p className="error">{error}</p> : null}
+
+      <article className={`check check-${result?.status === 'ok' ? 'ok' : result?.status === 'fail' ? 'fail' : 'warn'}`}>
+        <div>
+          <strong>Provider status</strong>
+          <p>{result?.message ?? 'Orgo has not been verified in this session.'}</p>
+          {result?.endpointTried ? <small>Endpoint: {result.endpointTried}</small> : null}
+        </div>
+        <span>{providerStatusLabel(result?.status ?? 'untested')}</span>
+      </article>
     </section>
   );
 }
@@ -210,6 +265,7 @@ function App(): JSX.Element {
           </p>
         </header>
         <CredentialsPanel />
+        <ProviderPanel />
         <DiagnosticsPanel />
       </section>
     </main>
