@@ -1,0 +1,29 @@
+{
+  "name": "os1-linux-electron",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OS1 Linux desktop shell built with Electron, TypeScript, React, and Vite.",
+  "main": "dist/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "npm run typecheck && vite build && tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
+    "start": "electron dist/main/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "electron": "latest",
+    "xterm": "latest",
+    "xterm-addon-fit": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}
