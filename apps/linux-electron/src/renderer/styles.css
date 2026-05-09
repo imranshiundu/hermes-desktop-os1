@@ -18,13 +18,17 @@ body {
   background: #f7f1e8;
 }
 
+button,
+input {
+  font: inherit;
+}
+
 button {
   border: 1px solid rgba(27, 23, 21, 0.18);
   border-radius: 999px;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.42);
   color: #1b1715;
-  font: inherit;
   cursor: pointer;
 }
 
@@ -35,6 +39,20 @@ button:hover:not(:disabled) {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+input {
+  min-width: 0;
+  border: 1px solid rgba(27, 23, 21, 0.16);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #1b1715;
+  outline: none;
+}
+
+input:focus {
+  border-color: rgba(255, 106, 74, 0.8);
 }
 
 .appShell {
@@ -134,11 +152,16 @@ h1 {
   letter-spacing: -0.075em;
 }
 
-.hero p:not(.eyebrow) {
+.hero p:not(.eyebrow),
+.muted {
   max-width: 700px;
   color: rgba(27, 23, 21, 0.68);
   font-size: 18px;
   line-height: 1.55;
+}
+
+.muted {
+  font-size: 14px;
 }
 
 .panel {
@@ -148,6 +171,10 @@ h1 {
   padding: 28px;
   background: rgba(255, 255, 255, 0.48);
   box-shadow: 0 24px 80px rgba(27, 23, 21, 0.08);
+}
+
+.compactPanel {
+  padding-bottom: 22px;
 }
 
 .panelHeader {
@@ -180,7 +207,8 @@ h1 {
   font-size: 13px;
 }
 
-.checks {
+.checks,
+.credentialList {
   display: grid;
   gap: 20px;
 }
@@ -193,14 +221,18 @@ h1 {
   letter-spacing: 0.12em;
 }
 
-.check {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
+.check,
+.credential {
   padding: 16px;
   border: 1px solid rgba(27, 23, 21, 0.1);
   border-radius: 22px;
   background: rgba(247, 241, 232, 0.72);
+}
+
+.check {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .check + .check {
@@ -209,15 +241,19 @@ h1 {
 
 .check strong,
 .check p,
-.check small {
+.check small,
+.credential strong,
+.credential p {
   display: block;
 }
 
-.check strong {
+.check strong,
+.credential strong {
   margin-bottom: 4px;
 }
 
-.check p {
+.check p,
+.credential p {
   margin-bottom: 0;
   color: rgba(27, 23, 21, 0.68);
 }
@@ -227,7 +263,8 @@ h1 {
   color: rgba(27, 23, 21, 0.5);
 }
 
-.check > span {
+.check > span,
+.credentialTop > span {
   align-self: flex-start;
   border-radius: 999px;
   padding: 6px 9px;
@@ -235,12 +272,14 @@ h1 {
   font-weight: 800;
 }
 
-.check-ok > span {
+.check-ok > span,
+.savedBadge {
   background: rgba(29, 124, 81, 0.12);
   color: #1d7c51;
 }
 
-.check-warn > span {
+.check-warn > span,
+.missingBadge {
   background: rgba(183, 101, 20, 0.12);
   color: #a85d12;
 }
@@ -254,4 +293,17 @@ h1 {
 .error {
   border-radius: 16px;
   padding: 12px;
+}
+
+.credentialTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.credentialForm {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  gap: 10px;
 }
