@@ -57,10 +57,12 @@ jobs:
           grep -qi "Electron" README.md
           grep -qi "Electron" docs/linux-support.md
           grep -qi "Electron" docs/electron-linux-architecture.md
-          if grep -Rqi "Tauri" README.md docs SECURITY.md; then
-            echo "Tauri should not be listed as the Linux desktop direction."
-            exit 1
-          fi
+          grep -qi "TypeScript" docs/electron-linux-architecture.md
+          grep -qi "React" docs/electron-linux-architecture.md
+          grep -qi "Vite" docs/electron-linux-architecture.md
+          grep -qi "Do not use Tauri" docs/electron-linux-architecture.md
+          grep -qi "No Tauri" apps/linux-electron/README.md
+          grep -qi "No Next.js inside the desktop shell" apps/linux-electron/README.md
 
   swift-tests:
     name: Swift tests
