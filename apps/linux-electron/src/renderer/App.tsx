@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { DiagnosticCheck, DiagnosticReport } from '../shared/diagnostics';
+import type { CredentialName, CredentialStatus } from '../shared/credentials';
 import './styles.css';
 
 function statusLabel(status: DiagnosticCheck['status']): string {
   if (status === 'ok') return 'OK';
   if (status === 'warn') return 'WARN';
   return 'FAIL';
+}
+
+function credentialStatusLabel(status: CredentialStatus): string {
+  if (!status.present) return 'MISSING';
+  if (status.source === 'environment') return 'ENV';
+  return 'SAVED';
 }
 
 function DiagnosticsPanel(): JSX.Element {
@@ -84,6 +91,94 @@ function DiagnosticsPanel(): JSX.Element {
   );
 }
 
+function CredentialsPanel(): JSX.Element {
+  const [statuses, setStatuses] = useState<CredentialStatus[]>([]);
+  const [values, setValues] = useState<Record<CredentialName, string>>({ orgo: '', openai: '' });
+  const [error, setError] = useState<string | null>(null);
+
+  async function refresh(): Promise<void> {
+    setError(null);
+    try {
+      setStatuses(await window.os1.credentials.list());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to read credential status.');
+    }
+  }
+
+  async function save(name: CredentialName): Promise<void> {
+    setError(null);
+    try {
+      const next = await window.os1.credentials.save({ name, value: values[name] });
+      setValues((current) => ({ ...current, [name]: '' }));
+      setStatuses(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to save credential.');
+    }
+  }
+
+  async function remove(name: CredentialName): Promise<void> {
+    setError(null);
+    try {
+      setStatuses(await window.os1.credentials.delete(name));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to remove credential.');
+    }
+  }
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  return (
+    <section className="panel compactPanel">
+      <div className="panelHeader">
+        <div>
+          <p className="eyebrow">Providers</p>
+          <h2>Credential boundary</h2>
+        </div>
+        <button type="button" onClick={() => void refresh()}>
+          Refresh
+        </button>
+      </div>
+
+      <p className="muted">
+        Keys are submitted through preload IPC to the main process. The renderer receives status only, never raw saved values.
+      </p>
+
+      {error ? <p className="error">{error}</p> : null}
+
+      <div className="credentialList">
+        {statuses.map((status) => (
+          <article className="credential" key={status.name}>
+            <div className="credentialTop">
+              <div>
+                <strong>{status.label}</strong>
+                <p>{status.message}</p>
+              </div>
+              <span className={status.present ? 'savedBadge' : 'missingBadge'}>{credentialStatusLabel(status)}</span>
+            </div>
+
+            <div className="credentialForm">
+              <input
+                type="password"
+                value={values[status.name]}
+                placeholder={`Paste ${status.label}`}
+                onChange={(event) => setValues((current) => ({ ...current, [status.name]: event.target.value }))}
+              />
+              <button type="button" onClick={() => void save(status.name)} disabled={!values[status.name].trim()}>
+                Save
+              </button>
+              <button type="button" onClick={() => void remove(status.name)} disabled={!status.present || status.source === 'environment'}>
+                Remove
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function App(): JSX.Element {
   return (
     <main className="appShell">
@@ -98,6 +193,7 @@ function App(): JSX.Element {
 
         <nav>
           <button className="active">Diagnostics</button>
+          <button className="active">Providers</button>
           <button disabled>Connections</button>
           <button disabled>Terminal</button>
           <button disabled>Sessions</button>
@@ -113,6 +209,7 @@ function App(): JSX.Element {
             Same OS1 direction. Electron, TypeScript, React, and Vite. First target: safe diagnostics before remote control.
           </p>
         </header>
+        <CredentialsPanel />
         <DiagnosticsPanel />
       </section>
     </main>
