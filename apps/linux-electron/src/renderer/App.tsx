@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { DiagnosticCheck, DiagnosticReport } from '../shared/diagnostics';
 import type { CredentialName, CredentialStatus } from '../shared/credentials';
-import type { OrgoVerificationResult, OrgoWorkspaceListResult } from '../shared/orgo';
+import type { OrgoComputerListResult, OrgoVerificationResult, OrgoWorkspaceListResult } from '../shared/orgo';
 import './styles.css';
 
 function statusLabel(status: DiagnosticCheck['status']): string {
@@ -146,8 +146,9 @@ function ProviderPanel(): JSX.Element {
   );
 }
 
-function WorkspacePanel(): JSX.Element {
+function WorkspacePanel({ onSelectWorkspace }: { onSelectWorkspace: (workspaceId: string) => void }): JSX.Element {
   const [result, setResult] = useState<OrgoWorkspaceListResult | null>(null);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -155,12 +156,21 @@ function WorkspacePanel(): JSX.Element {
     setLoading(true);
     setError(null);
     try {
-      setResult(await window.os1.orgo.listWorkspaces());
+      const next = await window.os1.orgo.listWorkspaces();
+      setResult(next);
+      const firstWorkspace = next.workspaces[0]?.id ?? '';
+      setSelectedWorkspaceId(firstWorkspace);
+      if (firstWorkspace) onSelectWorkspace(firstWorkspace);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load Orgo workspaces.');
     } finally {
       setLoading(false);
     }
+  }
+
+  function selectWorkspace(workspaceId: string): void {
+    setSelectedWorkspaceId(workspaceId);
+    onSelectWorkspace(workspaceId);
   }
 
   return (
@@ -189,9 +199,74 @@ function WorkspacePanel(): JSX.Element {
       {result?.workspaces.length ? (
         <div className="workspaceList">
           {result.workspaces.map((workspace) => (
-            <article className="workspaceItem" key={workspace.id}>
+            <button
+              className={`workspaceItem selectableItem ${selectedWorkspaceId === workspace.id ? 'selectedItem' : ''}`}
+              key={workspace.id}
+              type="button"
+              onClick={() => selectWorkspace(workspace.id)}
+            >
               <strong>{workspace.name}</strong>
               <small>{workspace.id}</small>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function ComputersPanel({ workspaceId }: { workspaceId: string }): JSX.Element {
+  const [result, setResult] = useState<OrgoComputerListResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadComputers(): Promise<void> {
+    setLoading(true);
+    setError(null);
+    try {
+      setResult(await window.os1.orgo.listComputers({ workspaceId: workspaceId || undefined }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load Orgo computers.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="panel compactPanel">
+      <div className="panelHeader">
+        <div>
+          <p className="eyebrow">Computers</p>
+          <h2>Orgo computers</h2>
+        </div>
+        <button type="button" onClick={() => void loadComputers()} disabled={loading}>
+          {loading ? 'Loading…' : 'Load computers'}
+        </button>
+      </div>
+
+      <p className="muted">
+        Selected workspace: {workspaceId || 'none yet. Load workspaces first, or load all computers through the general endpoint.'}
+      </p>
+
+      {error ? <p className="error">{error}</p> : null}
+
+      <article className={`check check-${result?.status === 'ok' ? 'ok' : result?.status === 'fail' ? 'fail' : 'warn'}`}>
+        <div>
+          <strong>Computer status</strong>
+          <p>{result?.message ?? 'No computer request has been made yet.'}</p>
+          {result?.endpointTried ? <small>Endpoint: {result.endpointTried}</small> : null}
+        </div>
+        <span>{providerStatusLabel(result?.status ?? 'untested')}</span>
+      </article>
+
+      {result?.computers.length ? (
+        <div className="workspaceList">
+          {result.computers.map((computer) => (
+            <article className="workspaceItem" key={computer.id}>
+              <strong>{computer.name}</strong>
+              <small>{computer.id}</small>
+              {computer.status ? <small>Status: {computer.status}</small> : null}
+              {computer.workspaceId ? <small>Workspace: {computer.workspaceId}</small> : null}
             </article>
           ))}
         </div>
@@ -289,6 +364,8 @@ function CredentialsPanel(): JSX.Element {
 }
 
 function App(): JSX.Element {
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('');
+
   return (
     <main className="appShell">
       <aside className="sidebar">
@@ -304,6 +381,7 @@ function App(): JSX.Element {
           <button className="active">Diagnostics</button>
           <button className="active">Providers</button>
           <button className="active">Workspaces</button>
+          <button className="active">Computers</button>
           <button disabled>Connections</button>
           <button disabled>Terminal</button>
           <button disabled>Sessions</button>
@@ -321,7 +399,8 @@ function App(): JSX.Element {
         </header>
         <CredentialsPanel />
         <ProviderPanel />
-        <WorkspacePanel />
+        <WorkspacePanel onSelectWorkspace={setSelectedWorkspaceId} />
+        <ComputersPanel workspaceId={selectedWorkspaceId} />
         <DiagnosticsPanel />
       </section>
     </main>
