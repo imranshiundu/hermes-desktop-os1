@@ -288,7 +288,7 @@ function ComputersPanel({ workspaceId, onSelectComputer }: { workspaceId: string
   );
 }
 
-function TerminalPanel({ session }: { session: TerminalSessionState }): JSX.Element {
+function TerminalPanel({ session, onConnect, onDisconnect }: { session: TerminalSessionState; onConnect: () => void; onDisconnect: () => void }): JSX.Element {
   return (
     <section className="panel compactPanel terminalPanel">
       <div className="panelHeader">
@@ -296,9 +296,14 @@ function TerminalPanel({ session }: { session: TerminalSessionState }): JSX.Elem
           <p className="eyebrow">Terminal</p>
           <h2>Session scaffold</h2>
         </div>
-        <button type="button" disabled>
-          Connect later
-        </button>
+        <div className="buttonRow">
+          <button type="button" onClick={onConnect} disabled={!session.target}>
+            Connect
+          </button>
+          <button type="button" onClick={onDisconnect}>
+            Disconnect
+          </button>
+        </div>
       </div>
 
       <article className="terminalSurface">
@@ -409,9 +414,12 @@ function App(): JSX.Element {
     updatedAt: new Date().toISOString(),
   });
 
-  function selectComputer(computer: OrgoComputer): void {
-    setTerminalSession({
-      status: 'selected',
+  useEffect(() => {
+    window.os1.terminal.get().then(setTerminalSession).catch(() => undefined);
+  }, []);
+
+  async function selectComputer(computer: OrgoComputer): Promise<void> {
+    const nextSession = await window.os1.terminal.prepare({
       target: {
         provider: 'orgo',
         computerId: computer.id,
@@ -419,9 +427,16 @@ function App(): JSX.Element {
         displayName: computer.name,
         transport: 'orgo-websocket',
       },
-      message: 'Computer selected. Terminal websocket is not wired yet.',
-      updatedAt: new Date().toISOString(),
     });
+    setTerminalSession(nextSession);
+  }
+
+  async function connectTerminal(): Promise<void> {
+    setTerminalSession(await window.os1.terminal.connect());
+  }
+
+  async function disconnectTerminal(): Promise<void> {
+    setTerminalSession(await window.os1.terminal.disconnect());
   }
 
   return (
@@ -458,8 +473,8 @@ function App(): JSX.Element {
         <CredentialsPanel />
         <ProviderPanel />
         <WorkspacePanel onSelectWorkspace={setSelectedWorkspaceId} />
-        <ComputersPanel workspaceId={selectedWorkspaceId} onSelectComputer={selectComputer} />
-        <TerminalPanel session={terminalSession} />
+        <ComputersPanel workspaceId={selectedWorkspaceId} onSelectComputer={(computer) => void selectComputer(computer)} />
+        <TerminalPanel session={terminalSession} onConnect={() => void connectTerminal()} onDisconnect={() => void disconnectTerminal()} />
         <DiagnosticsPanel />
       </section>
     </main>
