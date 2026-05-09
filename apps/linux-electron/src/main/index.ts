@@ -2,6 +2,8 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDiagnosticReport } from './diagnostics.js';
+import { deleteCredential, listCredentialStatuses, saveCredential } from './credentials.js';
+import type { CredentialInput, CredentialName } from '../shared/credentials.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +39,9 @@ function createWindow(): void {
 }
 
 ipcMain.handle('diagnostics:run', async () => buildDiagnosticReport());
+ipcMain.handle('credentials:list', async () => listCredentialStatuses());
+ipcMain.handle('credentials:save', async (_event, input: CredentialInput) => saveCredential(input));
+ipcMain.handle('credentials:delete', async (_event, name: CredentialName) => deleteCredential(name));
 
 app.whenReady().then(() => {
   createWindow();
