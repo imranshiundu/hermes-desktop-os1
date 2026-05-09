@@ -1,6 +1,7 @@
 name: Tests
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -18,11 +19,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Normalize script permissions
+        run: |
+          chmod +x scripts/doctor.sh
+
       - name: Check required docs
         run: |
           test -f README.md
+          test -f SECURITY.md
           test -f docs/linux-support.md
+          test -f docs/electron-linux-architecture.md
+          test -f docs/diagnostics.md
+          test -f docs/security.md
           test -f docs/contributing.md
+
+      - name: Check README links
+        run: |
+          grep -q "docs/linux-support.md" README.md
+          grep -q "docs/diagnostics.md" README.md
+          grep -q "docs/security.md" README.md
+          grep -q "docs/contributing.md" README.md
+          grep -q "docs/security.md" SECURITY.md
 
       - name: Check shell scripts parse
         run: |
@@ -33,13 +50,14 @@ jobs:
 
       - name: Run doctor on Linux host
         run: |
-          bash scripts/doctor.sh
+          ./scripts/doctor.sh
 
       - name: Guard Linux roadmap language
         run: |
           grep -qi "Electron" README.md
           grep -qi "Electron" docs/linux-support.md
-          if grep -Rqi "Tauri" README.md docs; then
+          grep -qi "Electron" docs/electron-linux-architecture.md
+          if grep -Rqi "Tauri" README.md docs SECURITY.md; then
             echo "Tauri should not be listed as the Linux desktop direction."
             exit 1
           fi
@@ -52,11 +70,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Normalize script permissions
+        run: |
+          chmod +x scripts/doctor.sh scripts/run-tests.sh
+
       - name: Show Swift version
         run: swift --version
 
       - name: Run doctor on macOS host
-        run: bash scripts/doctor.sh
+        run: ./scripts/doctor.sh
 
       - name: Run Swift tests
-        run: bash scripts/run-tests.sh
+        run: ./scripts/run-tests.sh
