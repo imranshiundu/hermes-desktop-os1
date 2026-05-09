@@ -1,7 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { DiagnosticReport } from '../shared/diagnostics.js';
 import type { CredentialInput, CredentialName, CredentialStatus } from '../shared/credentials.js';
-import type { OrgoVerificationResult, OrgoWorkspaceListResult } from '../shared/orgo.js';
+import type {
+  OrgoComputerListInput,
+  OrgoComputerListResult,
+  OrgoVerificationResult,
+  OrgoWorkspaceListResult,
+} from '../shared/orgo.js';
 
 export interface OS1Api {
   diagnostics: {
@@ -15,6 +20,7 @@ export interface OS1Api {
   orgo: {
     verify: () => Promise<OrgoVerificationResult>;
     listWorkspaces: () => Promise<OrgoWorkspaceListResult>;
+    listComputers: (input: OrgoComputerListInput) => Promise<OrgoComputerListResult>;
   };
 }
 
@@ -30,6 +36,7 @@ const api: OS1Api = {
   orgo: {
     verify: () => ipcRenderer.invoke('orgo:verify') as Promise<OrgoVerificationResult>,
     listWorkspaces: () => ipcRenderer.invoke('orgo:list-workspaces') as Promise<OrgoWorkspaceListResult>,
+    listComputers: (input) => ipcRenderer.invoke('orgo:list-computers', input) as Promise<OrgoComputerListResult>,
   },
 };
 
