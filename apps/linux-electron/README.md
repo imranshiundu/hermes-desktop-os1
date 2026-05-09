@@ -1,8 +1,8 @@
 # OS1 Linux Electron Shell
 
-This directory is reserved for the planned OS1 Linux desktop shell.
+This directory contains the planned OS1 Linux desktop shell.
 
-The Linux shell will be Electron-first. It is not implemented yet.
+The Linux shell is Electron-first and uses TypeScript, React, Vite, and xterm.js.
 
 ## Chosen stack
 
@@ -21,12 +21,51 @@ No Next.js inside the desktop shell. Next.js can be used later for websites, doc
 ## Current status
 
 ```txt
-status: planned
+status: early scaffold
 runtime: Electron
 language: TypeScript
 renderer: React + Vite
-terminal: xterm.js
+terminal: xterm.js planned
 packaging target: AppImage first, .deb later
+```
+
+Implemented now:
+
+- secure Electron main process defaults
+- typed preload bridge
+- React renderer shell
+- diagnostics page
+- local command and credential-presence checks
+
+Not implemented yet:
+
+- credential storage
+- Orgo login
+- workspace/computer listing
+- terminal websocket
+- SSH target flow
+- packaging
+
+## Run locally
+
+From this directory:
+
+```sh
+npm install
+npm run build
+npm start
+```
+
+For renderer development:
+
+```sh
+npm run dev
+```
+
+In another terminal:
+
+```sh
+OS1_ELECTRON_DEV=1 npm start
 ```
 
 ## Product target
