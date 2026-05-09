@@ -1,0 +1,62 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  docs-and-scripts:
+    name: Docs and scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required docs
+        run: |
+          test -f README.md
+          test -f docs/linux-support.md
+          test -f docs/contributing.md
+
+      - name: Check shell scripts parse
+        run: |
+          bash -n scripts/doctor.sh
+          bash -n scripts/build-macos-app.sh
+          bash -n scripts/run-tests.sh
+          bash -n scripts/package-github-release.sh
+
+      - name: Run doctor on Linux host
+        run: |
+          bash scripts/doctor.sh
+
+      - name: Guard Linux roadmap language
+        run: |
+          grep -qi "Electron" README.md
+          grep -qi "Electron" docs/linux-support.md
+          if grep -Rqi "Tauri" README.md docs; then
+            echo "Tauri should not be listed as the Linux desktop direction."
+            exit 1
+          fi
+
+  swift-tests:
+    name: Swift tests
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Run doctor on macOS host
+        run: bash scripts/doctor.sh
+
+      - name: Run Swift tests
+        run: bash scripts/run-tests.sh
