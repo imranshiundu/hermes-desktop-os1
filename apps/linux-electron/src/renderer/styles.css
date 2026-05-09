@@ -208,9 +208,15 @@ h1 {
 }
 
 .checks,
-.credentialList {
+.credentialList,
+.workspaceList {
   display: grid;
   gap: 20px;
+}
+
+.workspaceList {
+  margin-top: 16px;
+  gap: 10px;
 }
 
 .group h3 {
@@ -222,7 +228,8 @@ h1 {
 }
 
 .check,
-.credential {
+.credential,
+.workspaceItem {
   padding: 16px;
   border: 1px solid rgba(27, 23, 21, 0.1);
   border-radius: 22px;
@@ -243,12 +250,15 @@ h1 {
 .check p,
 .check small,
 .credential strong,
-.credential p {
+.credential p,
+.workspaceItem strong,
+.workspaceItem small {
   display: block;
 }
 
 .check strong,
-.credential strong {
+.credential strong,
+.workspaceItem strong {
   margin-bottom: 4px;
 }
 
@@ -258,7 +268,8 @@ h1 {
   color: rgba(27, 23, 21, 0.68);
 }
 
-.check small {
+.check small,
+.workspaceItem small {
   margin-top: 8px;
   color: rgba(27, 23, 21, 0.5);
 }
