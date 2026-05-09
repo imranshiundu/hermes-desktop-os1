@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { DiagnosticReport } from '../shared/diagnostics.js';
 import type { CredentialInput, CredentialName, CredentialStatus } from '../shared/credentials.js';
+import type { OrgoVerificationResult } from '../shared/orgo.js';
 
 export interface OS1Api {
   diagnostics: {
@@ -10,6 +11,9 @@ export interface OS1Api {
     list: () => Promise<CredentialStatus[]>;
     save: (input: CredentialInput) => Promise<CredentialStatus[]>;
     delete: (name: CredentialName) => Promise<CredentialStatus[]>;
+  };
+  orgo: {
+    verify: () => Promise<OrgoVerificationResult>;
   };
 }
 
@@ -21,6 +25,9 @@ const api: OS1Api = {
     list: () => ipcRenderer.invoke('credentials:list') as Promise<CredentialStatus[]>,
     save: (input) => ipcRenderer.invoke('credentials:save', input) as Promise<CredentialStatus[]>,
     delete: (name) => ipcRenderer.invoke('credentials:delete', name) as Promise<CredentialStatus[]>,
+  },
+  orgo: {
+    verify: () => ipcRenderer.invoke('orgo:verify') as Promise<OrgoVerificationResult>,
   },
 };
 
