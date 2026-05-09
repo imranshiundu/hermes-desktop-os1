@@ -103,7 +103,7 @@ Run preflight checks with:
 ./scripts/doctor.sh
 ```
 
-Diagnostics behavior is defined in [`docs/diagnostics.md`](docs/diagnostics.md).
+Diagnostics behavior is defined in [`docs/diagnostics.md`](docs/diagnostics.md). The security model is defined in [`docs/security.md`](docs/security.md).
 
 ## Linux desktop roadmap
 
