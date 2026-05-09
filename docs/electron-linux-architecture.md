@@ -1,8 +1,8 @@
 # Electron Linux Architecture
 
-This document defines the planned Linux desktop path for OS1.
+This document defines the Linux desktop path for OS1.
 
-The current OS1 app is a native macOS Swift application. Linux desktop support should be built as an Electron shell that preserves the same OS1 product behavior, engineering discipline, visual language, and UX. It is not a direct port of the macOS app bundle.
+The current OS1 app is a native macOS Swift application. Linux desktop support is built as an Electron shell that preserves the same OS1 product behavior, engineering discipline, visual language, and UX. It is not a direct port of the macOS app bundle.
 
 ## Chosen stack
 
@@ -19,6 +19,26 @@ xterm.js for terminal rendering
 This is the preferred stack because it is lighter and more direct for desktop work than a Next.js-based app shell. Next.js may still be useful for websites, docs, marketing pages, or a hosted web dashboard, but the Linux desktop app should use Vite + React inside Electron.
 
 Do not use Tauri for this project.
+
+## Current implementation
+
+The Linux Electron shell now includes:
+
+- Electron main process
+- typed preload bridge
+- React renderer shell
+- diagnostics panel
+- credential status panel
+- Orgo verification panel
+- Orgo workspace listing panel
+- Orgo computer listing panel
+- selected workspace state
+- selected computer state
+- terminal session scaffold
+- terminal IPC contract
+- Linux Electron CI build job
+
+The terminal websocket is intentionally not wired yet. The app must not display fake terminal output or fake connection success.
 
 ## Product parity goal
 
@@ -70,50 +90,43 @@ Do not include in the first release:
 - background daemon model
 - Next.js server/runtime assumptions inside the desktop shell
 
-## Proposed repository layout
+## Repository layout
 
 ```txt
 apps/
   linux-electron/
     package.json
-    electron.vite.config.ts
+    index.html
+    vite.config.ts
     tsconfig.json
+    tsconfig.main.json
+    tsconfig.preload.json
     src/
       main/
         index.ts
-        security.ts
+        diagnostics.ts
         credentials.ts
-        orgo-ipc.ts
-        ssh-ipc.ts
+        orgo.ts
+        terminal.ts
       preload/
         index.ts
       renderer/
-        app.tsx
-        routes/
-          connections.tsx
-          terminal.tsx
-          diagnostics.tsx
-          files.tsx
-          sessions.tsx
-        components/
-          shell.tsx
-          connection-list.tsx
-          terminal-view.tsx
-          status-pill.tsx
-    packaging/
-      appimage/
-      deb/
-packages/
-  schemas/
-    connection.schema.json
-    diagnostics.schema.json
-    provider.schema.json
-    terminal.schema.json
-  core-contracts/
-    README.md
+        App.tsx
+        styles.css
+        os1-api.d.ts
+      shared/
+        diagnostics.ts
+        credentials.ts
+        orgo.ts
+        terminal.ts
 ```
 
-This layout is a proposal, not a requirement for the current macOS app.
+Planned later:
+
+```txt
+apps/linux-electron/packaging/appimage
+apps/linux-electron/packaging/deb
+```
 
 ## Process boundaries
 
@@ -125,8 +138,8 @@ Responsible for:
 
 - credential storage
 - Orgo API calls that require secrets
-- SSH process management
-- terminal websocket lifecycle
+- SSH process management later
+- terminal websocket lifecycle later
 - filesystem access when needed
 - app updates later
 - diagnostics execution
@@ -174,11 +187,18 @@ Do not enable voice-mode `shell` or `admin` toolsets by default.
 
 Linux should use secure OS-backed storage first.
 
-Preferred order:
+Preferred final order:
 
 1. Secret Service / libsecret through a maintained Electron credential package
 2. encrypted local fallback with clear warning
 3. environment variables for development only
+
+Current implementation:
+
+1. local `0600` fallback file in Electron `userData`
+2. environment variable fallback for development
+
+Current implementation is acceptable only as a first boundary. It is not final secure storage.
 
 Secrets that require protection:
 
@@ -191,21 +211,31 @@ Secrets must not be stored in plain text project files.
 
 ## Orgo connection flow
 
-Minimum Linux flow:
+Current scaffolded flow:
 
-1. User opens Connections.
-2. User enters Orgo API key.
-3. Main process verifies key.
-4. Renderer receives only verification status.
-5. User selects workspace.
-6. User selects or creates computer.
-7. App saves connection metadata.
-8. Terminal page opens websocket through the main process.
-9. Renderer receives terminal stream events.
+1. User enters Orgo API key.
+2. Renderer sends key through preload IPC.
+3. Main process stores key.
+4. Renderer receives only credential status.
+5. User verifies Orgo.
+6. Main process tries known Orgo routes.
+7. Renderer receives only safe status.
+8. User loads workspaces.
+9. User selects workspace.
+10. User loads computers.
+11. User selects computer.
+12. Main process prepares terminal session state.
+
+Production flow still needs:
+
+1. confirmed Orgo production routes
+2. real terminal websocket route
+3. websocket lifecycle in main process
+4. xterm.js binding in renderer
 
 ## SSH flow
 
-Minimum SSH flow:
+Minimum SSH flow later:
 
 1. User enters host alias, host, port, and optional username.
 2. App validates non-interactive SSH access.
@@ -226,6 +256,14 @@ Terminal requirements:
 - clear error messages
 - no hidden command injection
 - explicit confirmation for dangerous actions later
+
+Current terminal behavior:
+
+- selected computer prepares a terminal target
+- Connect calls main-process IPC
+- main process returns an honest not-implemented state
+- no websocket is opened
+- no fake terminal output is shown
 
 ## Diagnostics page
 
@@ -254,16 +292,18 @@ Checks:
 3. `.deb`
 4. Flatpak only if useful later
 
-## First implementation milestone
+## First production milestone
 
-The first Electron milestone should prove only this:
+The first production Linux milestone should prove only this:
 
 - app launches on Linux
 - diagnostics page works
-- Orgo key can be saved securely
-- workspaces can be listed
-- computers can be listed
+- Orgo key can be saved through the main process
+- workspaces can be listed from confirmed Orgo routes
+- computers can be listed from confirmed Orgo routes
 - terminal websocket can connect to one computer
+- terminal stream renders in xterm.js
+- disconnect works cleanly
 
 That is enough to prove the Linux direction without building a fake full product.
 
@@ -274,6 +314,7 @@ That is enough to prove the Linux direction without building a fake full product
 - [ ] Tauri is not introduced.
 - [ ] Renderer has no raw Node integration.
 - [ ] Secrets remain in the main process or credential backend.
+- [ ] Terminal output comes from a real transport only.
 - [ ] No fake Linux install claims are added.
 - [ ] AppImage is not documented as available before it exists.
 - [ ] macOS build scripts are not broken.
