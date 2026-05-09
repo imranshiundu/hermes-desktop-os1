@@ -33,3 +33,22 @@ jobs:
 
       - name: Build app bundle
         run: HERMES_MAC_ARCHS=arm64 ./scripts/build-macos-app.sh
+
+  linux-electron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install Linux Electron dependencies
+        working-directory: apps/linux-electron
+        run: npm install
+
+      - name: Build Linux Electron shell
+        working-directory: apps/linux-electron
+        run: npm run build
