@@ -1,15 +1,26 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { DiagnosticReport } from '../shared/diagnostics.js';
+import type { CredentialInput, CredentialName, CredentialStatus } from '../shared/credentials.js';
 
 export interface OS1Api {
   diagnostics: {
     run: () => Promise<DiagnosticReport>;
+  };
+  credentials: {
+    list: () => Promise<CredentialStatus[]>;
+    save: (input: CredentialInput) => Promise<CredentialStatus[]>;
+    delete: (name: CredentialName) => Promise<CredentialStatus[]>;
   };
 }
 
 const api: OS1Api = {
   diagnostics: {
     run: () => ipcRenderer.invoke('diagnostics:run') as Promise<DiagnosticReport>,
+  },
+  credentials: {
+    list: () => ipcRenderer.invoke('credentials:list') as Promise<CredentialStatus[]>,
+    save: (input) => ipcRenderer.invoke('credentials:save', input) as Promise<CredentialStatus[]>,
+    delete: (name) => ipcRenderer.invoke('credentials:delete', name) as Promise<CredentialStatus[]>,
   },
 };
 
