@@ -95,3 +95,19 @@ export async function deleteCredential(name: CredentialName): Promise<Credential
   await writeStoredCredentials(stored);
   return listCredentialStatuses();
 }
+
+/** Synchronous read used by the agent service layer. */
+export function loadCredential(name: CredentialName): string | null {
+  const envKey = ENV_NAMES[name];
+  const envVal = process.env[envKey]?.trim();
+  if (envVal) return envVal;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const raw = (require('node:fs') as typeof import('node:fs')).readFileSync(credentialsPath(), 'utf8');
+    const parsed = JSON.parse(raw) as StoredCredentials;
+    return parsed[name]?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
