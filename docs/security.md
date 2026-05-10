@@ -2,7 +2,7 @@
 
 OS1 controls remote computers. Treat it as privileged software.
 
-This document defines the security expectations for the current macOS app and the planned Electron Linux shell.
+This document defines the security expectations for the current macOS app and the Electron Linux shell.
 
 ## Security principles
 
@@ -14,16 +14,21 @@ This document defines the security expectations for the current macOS app and th
    - Terminal access, agent install, shell commands, and admin actions must be visible to the user.
    - Dangerous actions should require clear user intent.
 
-3. **Voice tools must be restricted by default**
+3. **No fake remote-control success**
+   - Terminal output must come from a real transport only.
+   - Provider/resource lists must come from provider APIs only.
+   - Failed or unknown provider routes must show `warn` or `fail`, never fake success.
+
+4. **Voice tools must be restricted by default**
    - Read-only mode should be the default.
    - `shell` and `admin` MCP toolsets must remain opt-in.
 
-4. **Platform boundaries must stay clear**
+5. **Platform boundaries must stay clear**
    - macOS Keychain behavior belongs to macOS code.
    - Linux credential storage belongs to the Electron/Linux shell.
    - Linux packaging must not reuse macOS signing assumptions.
 
-5. **Diagnostics must be safe to share**
+6. **Diagnostics must be safe to share**
    - Logs and reports must redact keys, tokens, passwords, cookies, and bearer values.
 
 ## Trust boundaries
@@ -52,7 +57,7 @@ The app should avoid blindly executing remote commands except for known agent an
 
 Any web or renderer surface is less trusted than the native app process.
 
-It must not receive raw provider keys or unrestricted shell execution powers.
+It must not receive raw provider keys, terminal tokens, or unrestricted shell execution powers.
 
 ### Voice model
 
@@ -104,15 +109,40 @@ Expected behavior:
 
 ## Electron/Linux credential storage
 
-The planned Electron shell must not store secrets in plain text.
+The Electron shell must not expose secrets to the renderer.
 
-Preferred order:
+Preferred final order:
 
 1. OS-backed secret storage through Secret Service / libsecret
 2. encrypted local fallback with clear warning
 3. environment variables for development only
 
+Current Linux implementation:
+
+1. renderer sends key through preload IPC
+2. main process receives key
+3. main process stores a local `0600` fallback file in Electron `userData`
+4. renderer receives status only
+5. environment variables remain a development fallback
+
+This is a first boundary, not the final Linux security backend. Secret Service / libsecret is still required before calling the storage production-grade.
+
 Renderer code must not read credential files directly.
+
+## Provider/API safety
+
+Provider calls must happen through the main process.
+
+Rules:
+
+- renderer may request provider actions through typed preload IPC
+- main process owns API keys and provider tokens
+- renderer receives normalized metadata only
+- route failures must be visible
+- unknown Orgo route maps must not be treated as success
+- provider responses should be normalized before display
+
+Current Orgo routes are conservative until production route names are confirmed.
 
 ## Remote command safety
 
@@ -164,7 +194,7 @@ The model should receive tool outputs only when needed. It should not receive ra
 
 ## Electron process safety
 
-The planned Linux shell should use strict Electron defaults:
+The Linux shell should use strict Electron defaults:
 
 ```txt
 nodeIntegration: false
@@ -178,8 +208,8 @@ Main process responsibilities:
 
 - secrets
 - Orgo API calls
-- SSH process control
-- terminal websocket lifecycle
+- SSH process control later
+- terminal websocket lifecycle later
 - filesystem access
 - diagnostics execution
 
@@ -208,6 +238,14 @@ Terminal sessions should always show:
 - clear error messages
 
 Terminal implementation must avoid hidden command injection. User keystrokes and model/tool actions should be distinguishable when automation is later added.
+
+Current Linux behavior:
+
+- selecting a computer prepares a terminal target
+- Connect goes through main-process IPC
+- main process returns an honest not-implemented state
+- no fake websocket is opened
+- no fake terminal stream is displayed
 
 ## Diagnostics safety
 
@@ -244,6 +282,7 @@ Allowed in default CI:
 - shell script parsing
 - local doctor script checks
 - Swift tests that do not hit live services
+- Linux Electron TypeScript/build checks
 
 Not allowed in default CI:
 
@@ -283,12 +322,18 @@ Implemented:
 - diagnostics specification
 - preflight doctor script
 - CI docs/script checks
+- Linux Electron shell scaffold
+- Linux credential boundary
+- Linux Orgo verification/listing IPC
+- Linux terminal IPC scaffold
+- Linux Electron CI build job
 
 Planned:
 
-- in-app diagnostics screen
 - copy-safe report generator
-- Electron Linux shell
-- credential-store abstraction
+- Secret Service / libsecret storage
+- confirmed Orgo route map
+- real terminal websocket transport
+- xterm.js binding
 - visible voice/MCP permission panel
 - confirmation gates for dangerous automated actions
