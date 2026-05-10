@@ -5,25 +5,29 @@
   "description": "OS1 Linux desktop shell built with Electron, TypeScript, React, and Vite.",
   "main": "dist/main/index.js",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "npm run typecheck && vite build && tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
+    "build:ci": "npm run build",
     "start": "electron dist/main/index.js",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.preload.json"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "electron": "latest",
-    "xterm": "latest",
-    "xterm-addon-fit": "latest"
+    "@vitejs/plugin-react": "^4.3.4",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "electron": "^33.4.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/node": "^22.10.7",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5"
   }
 }
