@@ -5,6 +5,31 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="$ROOT_DIR/apps/linux-electron"
 SANDBOX="$APP_DIR/node_modules/electron/dist/chrome-sandbox"
 
+if [ ! -f "$ROOT_DIR/.git/config" ] || [ ! -f "$ROOT_DIR/apps/linux-electron/package.json" ]; then
+  echo "This script must run from a real hermes-desktop-os1 checkout." >&2
+  echo "Recommended clean install:" >&2
+  echo "  cd ~" >&2
+  echo "  rm -rf ~/hermes-desktop-os1" >&2
+  echo "  git clone https://github.com/imranshiundu/hermes-desktop-os1.git" >&2
+  echo "  cd ~/hermes-desktop-os1" >&2
+  echo "  ./scripts/install-linux-electron.sh" >&2
+  exit 1
+fi
+
+case "$ROOT_DIR" in
+  */apps/linux-electron/hermes-desktop-os1)
+    echo "Nested checkout detected: $ROOT_DIR" >&2
+    echo "You cloned hermes-desktop-os1 inside apps/linux-electron." >&2
+    echo "Fix:" >&2
+    echo "  cd ~" >&2
+    echo "  rm -rf ~/hermes-desktop-os1" >&2
+    echo "  git clone https://github.com/imranshiundu/hermes-desktop-os1.git" >&2
+    echo "  cd ~/hermes-desktop-os1" >&2
+    echo "  ./scripts/install-linux-electron.sh" >&2
+    exit 1
+    ;;
+esac
+
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is required. Install Node.js 22 or newer, then run this script again." >&2
   exit 1
@@ -49,7 +74,7 @@ cat <<'MSG'
 
 OS1 Linux Electron shell is installed and built.
 
-Run the desktop app with:
+Run the desktop app from the repository root with:
 
   ./scripts/run-linux-electron.sh
 
