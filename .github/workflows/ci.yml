@@ -45,10 +45,5 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Linux Electron dependencies
-        working-directory: apps/linux-electron
-        run: npm install
-
-      - name: Build Linux Electron shell
-        working-directory: apps/linux-electron
-        run: npm run build:ci
+      - name: Install and build Linux Electron shell
+        run: bash scripts/install-linux-electron.sh
