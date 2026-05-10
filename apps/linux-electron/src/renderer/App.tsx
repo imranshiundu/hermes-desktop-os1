@@ -25,6 +25,12 @@ function credentialStatusLabel(status: CredentialStatus): string {
   return 'SAVED';
 }
 
+function bootError(message: string): void {
+  const root = document.getElementById('root');
+  if (!root) return;
+  root.innerHTML = `<main style="min-height:100vh;display:grid;place-items:center;background:#f7f1e8;color:#1b1715;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"><section style="max-width:620px;padding:32px;"><p style="margin:0 0 10px;color:#9d2828;text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:800;">OS1 renderer error</p><h1 style="margin:0 0 12px;font-size:42px;line-height:.95;letter-spacing:-.06em;">Renderer failed to mount</h1><pre style="white-space:pre-wrap;background:rgba(185,45,45,.1);border-radius:18px;padding:16px;line-height:1.5;">${message.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char] ?? char)}</pre></section></main>`;
+}
+
 function DiagnosticsPanel(): JSX.Element {
   const [report, setReport] = useState<DiagnosticReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -481,4 +487,12 @@ function App(): JSX.Element {
   );
 }
 
-createRoot(document.getElementById('root') as HTMLElement).render(<App />);
+try {
+  const root = document.getElementById('root');
+  if (!root) {
+    throw new Error('Missing #root element.');
+  }
+  createRoot(root).render(<App />);
+} catch (error) {
+  bootError(error instanceof Error ? error.message : 'Unknown renderer boot error.');
+}
