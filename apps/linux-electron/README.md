@@ -48,6 +48,7 @@ Implemented now:
 - terminal IPC route
 - terminal session scaffold UI
 - Linux Electron CI build job
+- Linux install/build helper script
 
 Not implemented yet:
 
@@ -86,6 +87,32 @@ The current implementation tries conservative Orgo API routes:
 ```
 
 If Orgo uses different production routes, the app reports a warning instead of pretending success.
+
+## Install on Linux
+
+From the repository root:
+
+```sh
+git clone https://github.com/imranshiundu/hermes-desktop-os1.git
+cd hermes-desktop-os1
+chmod +x scripts/install-linux-electron.sh
+./scripts/install-linux-electron.sh
+```
+
+Then run:
+
+```sh
+cd apps/linux-electron
+npm start
+```
+
+Requirements:
+
+```txt
+Node.js 22 or newer
+npm
+Linux desktop session capable of running Electron
+```
 
 ## Run locally
 
