@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDiagnosticReport } from './diagnostics.js';
 import { deleteCredential, listCredentialStatuses, saveCredential } from './credentials.js';
+import { deleteConnection, listConnections, saveConnection, setActiveConnection, testConnection } from './connections.js';
 import { listOrgoComputers, listOrgoWorkspaces, verifyOrgoKey } from './orgo.js';
 import {
   connectTerminalSession,
@@ -12,6 +13,7 @@ import {
   resizeTerminal,
   writeTerminal,
 } from './terminal.js';
+import type { ConnectionInput } from '../shared/connections.js';
 import type { CredentialInput, CredentialName } from '../shared/credentials.js';
 import type { OrgoComputerListInput } from '../shared/orgo.js';
 import type { PrepareTerminalSessionInput, TerminalResizeInput, TerminalWriteInput } from '../shared/terminal.js';
@@ -57,6 +59,11 @@ ipcMain.handle('diagnostics:run', async () => buildDiagnosticReport());
 ipcMain.handle('credentials:list', async () => listCredentialStatuses());
 ipcMain.handle('credentials:save', async (_event, input: CredentialInput) => saveCredential(input));
 ipcMain.handle('credentials:delete', async (_event, name: CredentialName) => deleteCredential(name));
+ipcMain.handle('connections:list', async () => listConnections());
+ipcMain.handle('connections:save', async (_event, input: ConnectionInput) => saveConnection(input));
+ipcMain.handle('connections:delete', async (_event, id: string) => deleteConnection(id));
+ipcMain.handle('connections:set-active', async (_event, id: string) => setActiveConnection(id));
+ipcMain.handle('connections:test', async (_event, id: string) => testConnection(id));
 ipcMain.handle('orgo:verify', async () => verifyOrgoKey());
 ipcMain.handle('orgo:list-workspaces', async () => listOrgoWorkspaces());
 ipcMain.handle('orgo:list-computers', async (_event, input: OrgoComputerListInput) => listOrgoComputers(input));
@@ -71,14 +78,10 @@ app.whenReady().then(() => {
   createWindow();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
