@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { ConnectionInput, ConnectionStoreSnapshot, ConnectionTestResult } from '../shared/connections.js';
 import type { DiagnosticReport } from '../shared/diagnostics.js';
 import type { CredentialInput, CredentialName, CredentialStatus } from '../shared/credentials.js';
 import type {
@@ -15,13 +16,18 @@ import type {
 } from '../shared/terminal.js';
 
 export interface OS1Api {
-  diagnostics: {
-    run: () => Promise<DiagnosticReport>;
-  };
+  diagnostics: { run: () => Promise<DiagnosticReport> };
   credentials: {
     list: () => Promise<CredentialStatus[]>;
     save: (input: CredentialInput) => Promise<CredentialStatus[]>;
     delete: (name: CredentialName) => Promise<CredentialStatus[]>;
+  };
+  connections: {
+    list: () => Promise<ConnectionStoreSnapshot>;
+    save: (input: ConnectionInput) => Promise<ConnectionStoreSnapshot>;
+    delete: (id: string) => Promise<ConnectionStoreSnapshot>;
+    setActive: (id: string) => Promise<ConnectionStoreSnapshot>;
+    test: (id: string) => Promise<ConnectionTestResult>;
   };
   orgo: {
     verify: () => Promise<OrgoVerificationResult>;
@@ -39,13 +45,18 @@ export interface OS1Api {
 }
 
 const api: OS1Api = {
-  diagnostics: {
-    run: () => ipcRenderer.invoke('diagnostics:run') as Promise<DiagnosticReport>,
-  },
+  diagnostics: { run: () => ipcRenderer.invoke('diagnostics:run') as Promise<DiagnosticReport> },
   credentials: {
     list: () => ipcRenderer.invoke('credentials:list') as Promise<CredentialStatus[]>,
     save: (input) => ipcRenderer.invoke('credentials:save', input) as Promise<CredentialStatus[]>,
     delete: (name) => ipcRenderer.invoke('credentials:delete', name) as Promise<CredentialStatus[]>,
+  },
+  connections: {
+    list: () => ipcRenderer.invoke('connections:list') as Promise<ConnectionStoreSnapshot>,
+    save: (input) => ipcRenderer.invoke('connections:save', input) as Promise<ConnectionStoreSnapshot>,
+    delete: (id) => ipcRenderer.invoke('connections:delete', id) as Promise<ConnectionStoreSnapshot>,
+    setActive: (id) => ipcRenderer.invoke('connections:set-active', id) as Promise<ConnectionStoreSnapshot>,
+    test: (id) => ipcRenderer.invoke('connections:test', id) as Promise<ConnectionTestResult>,
   },
   orgo: {
     verify: () => ipcRenderer.invoke('orgo:verify') as Promise<OrgoVerificationResult>,
@@ -65,7 +76,5 @@ const api: OS1Api = {
 contextBridge.exposeInMainWorld('os1', api);
 
 declare global {
-  interface Window {
-    os1: OS1Api;
-  }
+  interface Window { os1: OS1Api }
 }
