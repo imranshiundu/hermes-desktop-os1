@@ -51,4 +51,4 @@ jobs:
 
       - name: Build Linux Electron shell
         working-directory: apps/linux-electron
-        run: npm run build
+        run: npm run build:ci
