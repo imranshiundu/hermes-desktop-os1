@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run typecheck && vite build && tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
+    "build": "npm run typecheck && vite build && tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && mv dist/preload/index.js dist/preload/index.cjs",
     "build:ci": "npm run build",
     "start": "node scripts/start.js",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.preload.json"

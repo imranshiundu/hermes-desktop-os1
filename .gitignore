@@ -23,3 +23,6 @@ DerivedData/
 *.cer
 *.crt
 .worktrace/
+apps/linux-electron/node_modules/
+apps/linux-electron/dist/
+apps/linux-electron/package-lock.json

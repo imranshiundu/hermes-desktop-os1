@@ -32,13 +32,17 @@ function createWindow(): void {
     title: 'OS1',
     backgroundColor: '#f7f1e8',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      preload: path.join(__dirname, '../preload/index.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false,
+      sandbox: true,
       webSecurity: true,
       allowRunningInsecureContent: false,
     },
+  });
+
+  window.webContents.on('console-message', (_event, _level, message, line) => {
+    console.log(`[Renderer L${line}] ${message}`);
   });
 
   if (isDev()) {
